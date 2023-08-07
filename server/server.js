@@ -1,8 +1,8 @@
-// server.js
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
 import connect from './database/conn.js';
+import authRoutes from './routes/authRoutes.js';
 
 const app = express();
 
@@ -18,6 +18,9 @@ const port = 8080;
 app.get('/', (req, res) => {
   res.status(201).json('Home GET Request');
 });
+
+// Use the authentication routes
+app.use('/auth', authRoutes);
 
 // Start server only when we have a valid connection
 connect()
