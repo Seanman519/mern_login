@@ -1,24 +1,24 @@
 import jwt from 'jsonwebtoken';
 
-const authMiddleware = (req, res, next) => {
+export const authMiddleware = (req, res, next) => {
   // Get the token from the request headers
-  const token = req.headers.authorization;
+  const token = req.header('Authorization');
 
-  // If the token is not present or invalid, return an error response
+  // Check if the token is missing
   if (!token) {
-    return res.status(401).json({ message: 'Unauthorized. Token not provided.' });
+    return res.status(401).json({ message: 'Unauthorized. Token missing.' });
   }
 
-  // Verify the token using the secret key (same key used for signing in authController)
-  jwt.verify(token, 'your_secret_key', (err, decodedToken) => {
-    if (err) {
-      return res.status(401).json({ message: 'Unauthorized. Invalid token.' });
-    }
+  try {
+    // Verify the token using your secret key
+    const decoded = jwt.verify(token, 'sean');
 
-    // If the token is valid, store the decoded token in the request object for future use
-    req.user = decodedToken;
-    next(); // Move on to the next middleware or route handler
-  });
+    // Attach the user data to the request object
+    req.user = decoded;
+
+    // Proceed to the next middleware
+    next();
+  } catch (error) {
+    return res.status(401).json({ message: 'Unauthorized. Invalid token.' });
+  }
 };
-
-export default authMiddleware;
