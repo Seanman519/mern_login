@@ -90,3 +90,50 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ message: 'An error occurred while sending the forgot password email' });
   }
 };
+
+export const generateOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Generate a 6-digit OTP
+    const otp = crypto.randomBytes(3).toString('hex').toUpperCase();
+    user.otp = otp;
+    user.otpExpires = new Date(Date.now() + 15 * 60 * 1000); // OTP valid for 15 minutes
+    await user.save();
+
+    // TODO: Send the OTP via email or SMS to the user
+
+    res.status(200).json({ message: 'OTP generated and sent' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while generating the OTP' });
+  }
+};
+
+export const validateOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    if (user.otp !== otp || Date.now() > user.otpExpires) {
+      return res.status(400).json({ message: 'Invalid or expired OTP' });
+    }
+
+    // OTP is valid, so nullify it
+    user.otp = null;
+    user.otpExpires = null;
+    await user.save();
+
+    res.status(200).json({ message: 'OTP validated successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'An error occurred while validating the OTP' });
+  }
+};

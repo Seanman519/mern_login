@@ -14,7 +14,10 @@ router.post('/login', loginUser);
 router.post('/reset', resetPassword);
 
 // Route for sending forgot password email
-router.post('/forgot', forgotPassword);
+router.post('/forgot', forgotPassword);router.post('/generate-otp', generateOtp);
+router.post('/validate-otp', validateOtp);
+
+
 
 // Protected route for the user profile
 router.get('/profile', authMiddleware, (req, res) => {
