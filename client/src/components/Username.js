@@ -1,10 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import avatar from '../assets/profile.png';
 import { motion } from 'framer-motion';
 import { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { usernameValidate } from '../helper/validate';
+import axios from 'axios'; // Import axios for making API calls
+
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -18,6 +20,8 @@ const glassMorphismVariants = {
 };
 
 const Username = () => {
+  const navigate = useNavigate();
+
   const formik = useFormik({
     initialValues: {
       username: ''
@@ -26,7 +30,24 @@ const Username = () => {
     validateOnBlur: false,
     validateOnChange: false,
     onSubmit: async (values) => {
-      console.log(values);
+      try {
+        const response = await axios.post('http://localhost:8080/auth/login', values);
+        
+        if (response.data && response.data.token) {
+          // If the username exists and is valid, navigate to the Password page
+          navigate('/password');
+        } else {
+          // Handle non-existent or invalid username
+          console.error('Username does not exist or is invalid');
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          console.error('Invalid username');
+          // Optionally, you can set some state here to display an error message to the user.
+        } else {
+          console.error('Error checking username:', error);
+        }
+      }
     }
   });
 

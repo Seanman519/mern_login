@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 
 // Controller for user registration
 export const registerUser = async (req, res) => {
@@ -24,22 +25,26 @@ export const registerUser = async (req, res) => {
   }
 };
 
-// Controller for user login
 export const loginUser = async (req, res) => {
   try {
-    const { username, password } = req.body;
+    const { username } = req.body;
 
     const user = await User.findOne({ username });
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    // If only username is provided, return a success message
+    if (!req.body.password) {
+      return res.status(200).json({ message: 'Username is valid' });
+    }
+
+    const isPasswordValid = await bcrypt.compare(req.body.password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid password' });
     }
 
-    const token = jwt.sign({ userId: user._id }, 'sean', { expiresIn: '1h' }); // Replace with your own secret key
+    const token = jwt.sign({ userId: user._id }, 'sean', { expiresIn: '1h' });
 
     res.status(200).json({ token });
   } catch (error) {
@@ -48,7 +53,7 @@ export const loginUser = async (req, res) => {
   }
 };
 
-// Controller for resetting the password (assuming you have a forgot password flow)
+// Controller for resetting the password
 export const resetPassword = async (req, res) => {
   try {
     const { username, newPassword } = req.body;
@@ -70,7 +75,7 @@ export const resetPassword = async (req, res) => {
   }
 };
 
-// Controller for sending a forgot password email (assuming you have a forgot password flow)
+// Controller for sending a forgot password email
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -105,12 +110,12 @@ export const generateOtp = async (req, res) => {
     user.otpExpires = new Date(Date.now() + 15 * 60 * 1000); // OTP valid for 15 minutes
     await user.save();
 
-    // TODO: Send the OTP via email or SMS to the user
+    // Return a success message without sending the email
+    res.status(200).json({ message: 'OTP generated' });
 
-    res.status(200).json({ message: 'OTP generated and sent' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'An error occurred while generating the OTP' });
+    res.status(500).json({ message: `Error: ${error.message}` });
   }
 };
 
@@ -134,6 +139,6 @@ export const validateOtp = async (req, res) => {
     res.status(200).json({ message: 'OTP validated successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'An error occurred while validating the OTP' });
+    res.status(500).json({ message: `Error: ${error.message}` });
   }
 };

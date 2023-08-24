@@ -1,11 +1,13 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import avatar from '../assets/profile.png';
 import { Toaster } from 'react-hot-toast';
 import { useFormik } from 'formik';
 import { passwordValidate } from '../helper/validate';
 
 const Password = () => {
+  const navigate = useNavigate();
+
   const formik = useFormik({
     initialValues: {
       password: ''
@@ -14,7 +16,11 @@ const Password = () => {
     validateOnBlur: false,
     validateOnChange: false,
     onSubmit: async (values) => {
+      // Here, you can add any logic for handling the password, like API calls.
       console.log(values);
+
+      // Redirect to Profile route
+      navigate('/profile');
     }
   });
 
